@@ -14,23 +14,34 @@ class Transcompiler:
         self.grammar: Grammar | None = grammar
         self.generator: Generator | None = generator
 
-    def transcompile(self, input_str: str) -> str:
+    def transcompile(self,
+                     input_str: str,
+                     file_name: str = "",
+                     save: bool = False
+                     ) -> str:
         if not self.lexer:
-            raise TranscompylerError("Lexer not set")
+            raise TranscompylerError("Lexer must be set before transcompiling \
+                    code.")
         if not self.grammar:
-            raise TranscompylerError("Grammar not set")
+            raise TranscompylerError("Grammar must be set before \
+                    transcompiling code.")
         if not self.generator:
-            raise TranscompylerError("Generator not set")
+            raise TranscompylerError("Generator must be set before \
+                    transcompiling code.")
 
         self.lexer.lex(input_str)
         self.grammar.translate(self.lexer.tokens)
         self.generator.generate(self.grammar.output_tokens)
 
-        return self.generator.output
+        if not save:
+            return self.generator.output
+
+        self.save_to_file(self.generator.output, file_name)
 
     def save_to_file(self, input_str: str, file_path: str) -> None:
         try:
             with open(file_path, "w") as f:
                 f.write(self.transcompile(input_str))
         except FileNotFoundError:
-            raise TranscompylerError(f"File '{file_path}' not found")
+            raise TranscompylerError(f"File '{file_path}' \
+                    could not be written to")
