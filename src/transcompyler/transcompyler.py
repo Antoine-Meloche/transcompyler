@@ -1,0 +1,36 @@
+from transcompyler.generator import Generator
+from transcompyler.grammar import Grammar
+from transcompyler.lexer import Lexer
+from transcompyler.utils.errors import TranscompylerError
+
+
+class Transcompiler:
+    def __init__(self,
+                 lexer: Lexer | None = None,
+                 grammar: Grammar | None = None,
+                 generator: Generator | None = None
+                 ) -> None:
+        self.lexer: Lexer | None = lexer
+        self.grammar: Grammar | None = grammar
+        self.generator: Generator | None = generator
+
+    def transcompile(self, input_str: str) -> str:
+        if not self.lexer:
+            raise TranscompylerError("Lexer not set")
+        if not self.grammar:
+            raise TranscompylerError("Grammar not set")
+        if not self.generator:
+            raise TranscompylerError("Generator not set")
+
+        self.lexer.lex(input_str)
+        self.grammar.translate(self.lexer.tokens)
+        self.generator.generate(self.grammar.output_tokens)
+
+        return self.generator.output
+
+    def save_to_file(self, input_str: str, file_path: str) -> None:
+        try:
+            with open(file_path, "w") as f:
+                f.write(self.transcompile(input_str))
+        except FileNotFoundError:
+            raise TranscompylerError(f"File '{file_path}' not found")
